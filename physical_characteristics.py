@@ -346,10 +346,10 @@ if __name__ == '__main__':
 
     for char in range(10):
         Xo, Yo, To, Vo, infos_o = load_data(arranged_original)
-        data_o = Xo, Yo, To, Vo, infos = filter_data(Xo, infos_o, Yo, To, Vo, number)
+        data_o = Xo, Yo, To, Vo, infos = filter_data(Xo, infos_o, Yo, To, Vo, char)
 
         Xr, Yr, Tr, Vr, infos_r = load_data(arranged_represented)
-        Xr, Yr, Tr, Vr, infos_r = filter_data(Xr, infos_r, Yr, Tr, Vr,  number)
+        Xr, Yr, Tr, Vr, infos_r = filter_data(Xr, infos_r, Yr, Tr, Vr,  char)
 
         plt_length_distribution(Xo, Yo, Xr, Yr)
         plt_acceleration_distribution(Vo, Vr)
