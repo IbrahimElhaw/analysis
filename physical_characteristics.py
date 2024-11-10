@@ -344,7 +344,7 @@ if __name__ == '__main__':
     arranged_manipulated_2_modes = "arranged/manipulated_2_modes"
     arranged_edge_data = "arranged/second mode edge data"
 
-    for number in range(10):
+    for char in range(10):
         Xo, Yo, To, Vo, infos_o = load_data(arranged_original)
         data_o = Xo, Yo, To, Vo, infos = filter_data(Xo, infos_o, Yo, To, Vo, number)
 
