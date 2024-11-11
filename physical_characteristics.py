@@ -1,3 +1,4 @@
+import csv
 import itertools
 import math
 import os
@@ -110,13 +111,14 @@ def filter_outliers(data):
     return [x for x in data if lower_bound <= x <= upper_bound]
 
 
-def plt_length_distribution(Xr_, Yr_, Xo_, Yo_):
+def plt_length_distribution(Xo_, Yo_, Xr_, Yr_):
     lengths_r = [calculate_curve_length(x, y) for x, y in zip(Xr_, Yr_)]
     lengths_o = [calculate_curve_length(x, y) for x, y in zip(Xo_, Yo_)]
 
     lengths_o = normalize_distribution(lengths_o)
     lengths_r = normalize_distribution(lengths_r)
     distance = wasserstein_distance(lengths_r, lengths_o)
+
     print(f"length mean: {np.mean(lengths_o)}, std: {np.std(lengths_o)}")
     print(f"length mean: {np.mean(lengths_r)}, std: {np.std(lengths_r)}")
     print(f"length Wasserstein Distance: {distance}\n")
@@ -153,7 +155,7 @@ def plt_length_distribution(Xr_, Yr_, Xo_, Yo_):
     # Show plots
     plt.tight_layout()
     # plt.show()
-    return distance
+    return distance, np.mean(lengths_r), np.std(lengths_r)
 
 
 def plt_V_distribution(Vo_, Vr_):
@@ -202,7 +204,7 @@ def plt_V_distribution(Vo_, Vr_):
 
     plt.tight_layout()
     # plt.show()
-    return distance
+    return distance, np.mean(flattened_vr), np.std(flattened_vr)
 
 
 def calculate_angle_change(X, Y):
@@ -274,7 +276,7 @@ def plt_angle_distribution(Xo_, Yo_, Xr_, Yr_):
 
     plt.tight_layout()
     # plt.show()
-    return distance
+    return distance, np.mean(angle_changes_synthetic), np.std(angle_changes_synthetic)
 
 
 def calculate_acceleration(velocities):
@@ -334,7 +336,7 @@ def plt_acceleration_distribution(Vo_, Vr_):
 
     plt.tight_layout()
     # plt.show()
-    return distance
+    return distance, np.mean(acceleration_synthetic), np.std(acceleration_synthetic)
 
 
 if __name__ == '__main__':
@@ -343,16 +345,37 @@ if __name__ == '__main__':
     arranged_represented = "arranged/represented"
     arranged_manipulated_2_modes = "arranged/manipulated_2_modes"
     arranged_edge_data = "arranged/second mode edge data"
+    folders = [arranged_original, arranged_represented, arranged_manipulated]
 
-    for char in range(10):
-        Xo, Yo, To, Vo, infos_o = load_data(arranged_original)
-        data_o = Xo, Yo, To, Vo, infos = filter_data(Xo, infos_o, Yo, To, Vo, char)
+    all_calculations = []
 
-        Xr, Yr, Tr, Vr, infos_r = load_data(arranged_represented)
-        Xr, Yr, Tr, Vr, infos_r = filter_data(Xr, infos_r, Yr, Tr, Vr,  char)
 
-        plt_length_distribution(Xo, Yo, Xr, Yr)
-        plt_acceleration_distribution(Vo, Vr)
-        plt_V_distribution(Vo, Vr)
-        plt_angle_distribution(Xo, Yo, Xr, Yr)
-        plt.show()
+    for folder in folders:
+        for char in range(10):
+            calculations = [char]
+
+            # Filter data based on `char`
+            Xo, Yo, To, Vo, infos_o = load_data(arranged_original)
+            data_o = Xo, Yo, To, Vo, infos = filter_data(Xo, infos_o, Yo, To, Vo, char)
+            Xr, Yr, Tr, Vr, infos_r = load_data(folder)
+            Xr, Yr, Tr, Vr, infos_r = filter_data(Xr, infos_r, Yr, Tr, Vr, char)
+
+            _, mean_l, std_l = plt_length_distribution(Xo, Yo, Xr, Yr)
+            calculations.extend([mean_l, std_l])
+            _, mean_acc, std_acc = plt_acceleration_distribution(Vo, Vr)
+            calculations.extend([mean_acc, std_acc])
+            _, mean_v, std_v = plt_V_distribution(Vo, Vr)
+            calculations.extend([mean_v, std_v])
+            _, mean_ang, std_ang = plt_angle_distribution(Xo, Yo, Xr, Yr)
+            calculations.extend([mean_ang, std_ang])
+
+            print(calculations)
+            # plt.show()
+            all_calculations.append(calculations)
+
+        all_calculations.append(["Folder End"] + ["-"] * 8)
+
+    with open("calculations.csv", mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Char", "Mean_L", "Std_L", "Mean_Acc", "Std_Acc", "Mean_V", "Std_V", "Mean_Ang", "Std_Ang"])
+        writer.writerows(all_calculations)
